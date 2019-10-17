@@ -1,0 +1,71 @@
+// imagine you are given a binary tree represented as an array
+// e.g. [ 6, 2, 9, 5, -1, 5, 3 ]
+// (-1 represents a blank node)
+// write a function to determine whether the sum of the right side or left side is greater
+
+function sum_tree($arr) {
+
+    $rTotal = 0;
+    $lTotal = 0;
+
+    $level = 1;    // level of tree we are at, starting at 1
+    $nodes = 1;    // number of nodes in last level * 2, starting at 1
+
+    foreach ($arr as $index => $node)
+    {
+        if ($index == 0)
+        {
+            // top level: add to both
+
+            $rTotal += $node;
+            $lTotal += $node;
+        }
+        else
+        {
+            // otherwise, work out if on left or right side
+
+            if ($index >= (((pow(2, $level) - 2) + $nodes) / 2))
+            {
+                // add to right
+
+                $rTotal += $node;
+            }
+            else
+            {
+                // add to left
+
+                $lTotal += $node;
+            }
+        }
+
+
+        // are we ready to move to the next level?
+
+        if ($index == (pow(2, $level) - 2))
+        {
+            // update level
+
+            $level++;
+
+            // update nodes
+
+            $nodes = ($nodes * 2);
+        }
+    }
+
+
+    // return result
+
+    $result = '';
+
+    if     ($rTotal > $lTotal)
+    {
+        $result =  'Right';
+    }
+    elseif ($lTotal > $rTotal)
+    {
+        $result = 'Left';
+    }
+
+    return $result;
+}
