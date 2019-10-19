@@ -1,0 +1,40 @@
+// returns the number from an array that occurs an odd number of times
+// e.g. [ 0, 0, 1, 1, 2, 3, 3, 4, 4 ]
+// returns 2
+
+// the "normal" solution
+
+function findIt(array $seq) : int
+{
+    $arr = array_count_values($seq);
+    
+    foreach ($arr as $key => $count)
+    {
+        if ($count % 2 !== 0)
+        {
+            return $key;
+        }
+    }
+}
+
+
+// the mindfuck solution
+
+// don't try to think about it too much or you'll risk brain damage
+
+// but essentially, if you XOR a series of numbers, numbers that occur an even number of times
+// will essentially be cancelled out, so if one number occurs an odd number of times, you will
+// effectively be left with 0 ^ the value = the value
+
+// i.e. 0100 (6) ^ 0001 (1) = 1010 (10)
+
+function findIt(array $seq) : int
+{
+    $res = 0;  
+    foreach ($seq as $value)      
+    {
+        $res = ($res ^ $value); 
+    }
+      
+    return $res; 
+}
