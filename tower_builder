@@ -1,0 +1,52 @@
+// write a function that takes an int for number of levels, and returns an array representing a tower e.g. $n = 3
+$tower = array(
+'  *  ',
+' *** ',
+'*****'
+);
+
+
+
+function tower_builder(int $n): array {
+
+    // array to return
+    
+    $tower = array();
+    
+    
+    // work out width at lowest (and widest) level
+    
+    $width = ((2 * $n) - 1);
+
+
+    // build tower
+
+    for ($i = 0; $i < $n; $i++)
+    {
+        // work out indent for this level (number of spaces on either side of asterisks)
+        
+        $indent = ($n - ($i + 1));
+      
+        
+        for ($j = 0; $j < $width; $j++)
+        {
+            // check if space or asterisk
+            
+            if (($j < $indent) || ($j >= ($width - $indent)))
+            {
+                // add space
+                
+                $tower[$i] .= ' ';
+            }
+            else
+            {
+                // add asterisk
+          
+                $tower[$i] .= '*';
+            }
+        }
+    }
+    
+    
+    return $tower;
+}
