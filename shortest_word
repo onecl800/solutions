@@ -1,3 +1,7 @@
+// Find the shortest word in a string
+
+
+
 // first solution
 
 function findShort($str){
