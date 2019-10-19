@@ -1,0 +1,27 @@
+// first solution
+
+function findShort($str){
+    
+    $words = explode(' ', $str);
+    
+    $shortest = strlen($words[0]);
+    
+    foreach ($words as $word)
+    {
+        if (strlen($word) < $shortest)
+        {
+            $shortest = strlen($word);
+        }
+    }
+    
+    return $shortest;
+}
+
+
+// second solution
+
+function findShort($str){
+
+  return min(array_map('strlen', explode(' ', $str)));
+
+}
