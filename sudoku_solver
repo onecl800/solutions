@@ -1,0 +1,336 @@
+#!/usr/bin/perl
+
+use 5.011;
+
+use strict;
+use warnings;
+
+use Data::Dumper;
+
+# steps to solve a sudoku:
+# 	1. place the existing known data into 2D array like:
+#		array => 
+#			0 	=> [ 0 => null, 1 => 3, 2 => null, 3 => 9, 4 => null, 5 => null, 6 => null, 7 => null, 8 => 6 ],
+#			1 	=> [ 0 => null, 1 => 3, 2 => null, 3 => 9, 4 => null, 5 => null, 6 => null, 7 => null, 8 => 6 ],
+#			...
+#
+#	2. Iterate through each row and then each column within a row
+#
+# 	3. If the cell is not null, then we skip it. Otherwise we start
+#		trying to work out all the possible values. 
+#
+#	4. Check to see if an array for those co-ordinates already exists.
+#		If not, create one, and populate it with numbers 1-9.
+#
+#	5. Iterate each cell that is in the same row and column as the
+#		current cell. If any of them contain a number, remove it from
+#		the cell's array of possible numbers. Also iterate the 3x3
+#		block that contains the cell.
+#
+#	6. Once that is done, check the array. If it contains only one
+#		defined number, then we can set it in the original puzzle array.
+#
+#	7. Run until the 2D array no longer contains nulls.
+
+
+## 
+# 	PUZZLE:
+#
+#   -------------------------------------
+#	| 3 | 6 |   |   |   | 9 |   |   | 2 |
+#   -------------------------------------
+#	|   |   | 5 |   | 7 | 8 |   |   |   |
+#   -------------------------------------
+#	| 1 | 7 | 2 | 6 |   | 5 |   |   |   |
+#   -------------------------------------
+#	|   | 1 |   |   | 6 |   | 8 |   | 3 |
+#   -------------------------------------
+#	| 6 |   |   |   |   |   |   |   | 4 |
+#   -------------------------------------
+#	| 2 |   | 4 |   | 1 |   |   | 6 |   |
+#   -------------------------------------
+#	|   |   |   | 7 |   | 6 | 3 | 2 | 5 |
+#   -------------------------------------
+#	|   |   |   | 3 | 2 |   | 9 |   |   |
+#   -------------------------------------
+#	| 9 |   |   | 8 |   |   |   | 7 | 6 |
+#   -------------------------------------
+#
+#
+
+
+##
+# set up sudoku
+#
+sub setup
+{
+	# set up hashes containing known cells
+
+	my $puzzle = {};
+
+	$puzzle->{0} = { 0 => 3, 	 1 => 6, 	 2 => undef, 3 => undef, 4 => undef, 5 => 9, 	 6 => undef, 7 => undef, 8 => 2 	};
+	$puzzle->{1} = { 0 => undef, 1 => undef, 2 => 5, 	 3 => undef, 4 => 7, 	 5 => 8, 	 6 => undef, 7 => undef, 8 => undef };
+	$puzzle->{2} = { 0 => 1,	 1 => 7, 	 2 => 2, 	 3 => 6, 	 4 => undef, 5 => 5, 	 6 => undef, 7 => undef, 8 => undef };
+	$puzzle->{3} = { 0 => undef, 1 => 1, 	 2 => undef, 3 => undef, 4 => 6, 	 5 => undef, 6 => 8, 	 7 => undef, 8 => 3		};
+	$puzzle->{4} = { 0 => 6, 	 1 => undef, 2 => undef, 3 => undef, 4 => undef, 5 => undef, 6 => undef, 7 => undef, 8 => 4 	};
+	$puzzle->{5} = { 0 => 2, 	 1 => undef, 2 => 4, 	 3 => undef, 4 => 1, 	 5 => undef, 6 => undef, 7 => 6, 	 8 => undef };
+	$puzzle->{6} = { 0 => undef, 1 => undef, 2 => undef, 3 => 7,	 4 => undef, 5 => 6,	 6 => 3,	 7 => 2,	 8 => 5 	};
+	$puzzle->{7} = { 0 => undef, 1 => undef, 2 => undef, 3 => 3,	 4 => 2,	 5 => undef, 6 => 9,	 7 => undef, 8 => undef };
+	$puzzle->{8} = { 0 => 9,	 1 => undef, 2 => undef, 3 => 8,	 4 => undef, 5 => undef, 6 => undef, 7 => 7,	 8 => 6 	};
+
+	print Dumper($puzzle);
+
+
+	# solve sudoku
+
+	&solve($puzzle);
+}
+
+
+##
+# solve sudoku
+#
+sub solve
+{
+	my $puzzle = shift;
+
+
+	# hash for possible solutions for each cell
+
+	my $numbers = {};
+	my $blanks = 1;
+
+
+	while ($blanks > 0)
+	{
+		# reset blanks
+
+		$blanks = 0;
+
+
+		# iterate rows
+
+		foreach my $rowkey (keys $puzzle)
+		{
+			my $row = $puzzle->{$rowkey};
+
+
+			# iterate columns
+
+			foreach my $colkey (keys $row)
+			{
+				my $cell = $row->{$colkey};
+
+				if (! $cell)
+				{
+					$blanks++;
+
+					# cell is blank; work out all possible numbers
+
+					my $coord = $rowkey.'.'.$colkey;
+
+
+					# check if we already have an array of possible values for this cell
+
+					if (! $numbers->{$coord})
+					{
+						# create array in numbers hash
+
+						my @nums = (1,2,3,4,5,6,7,8,9);
+
+						$numbers->{$coord} = \@nums;
+					}
+
+
+					# check if we can clear any possibilities for this cell
+					# note: check that num is still defined before each check_ function
+
+					foreach my $num (@{$numbers->{$coord}})
+					{
+						if ($num)
+						{
+							my $idx = $num - 1;
+
+
+							# test row
+
+							if (@{$numbers->{$coord}}[$idx])
+							{
+								if (&check_row($puzzle, $rowkey, $num))
+								{
+									# remove number
+									
+									undef @{$numbers->{$coord}}[$idx];
+								}
+							}
+
+
+							# test column
+
+							if (@{$numbers->{$coord}}[$idx])
+							{
+								if (&check_col($puzzle, $colkey, $num))
+								{
+									# remove number
+
+									undef @{$numbers->{$coord}}[$idx];
+								}
+							}
+
+
+							# test block
+
+							if (@{$numbers->{$coord}}[$idx])
+							{
+								if (&check_block($puzzle, $rowkey, $colkey, $num))
+								{
+									# remove number
+
+									undef @{$numbers->{$coord}}[$idx];
+								}
+							}
+						}
+					}
+
+
+					# update cell if only one possible value left
+
+					if (scalar(grep {defined $_} @{$numbers->{$coord}}) == 1)
+					{
+						# find the defined value
+
+						foreach my $num (@{$numbers->{$coord}})
+						{
+							if ($num)
+							{
+								$puzzle->{$rowkey}{$colkey} = $num;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	print "Solution found:\n";
+	print Dumper($puzzle);
+}
+
+##
+# check if given row contains this number
+#
+sub check_row
+{
+	my $puzzle 	= shift;
+	my $rowkey 	= shift;
+	my $num 	= shift;
+
+
+	# loop columns in a row
+
+	my $row = $puzzle->{$rowkey};
+
+	foreach my $cell (keys $row)
+	{
+		if (($puzzle->{$rowkey}{$cell}) && ($puzzle->{$rowkey}{$cell} == $num))
+		{
+			return (1);
+		}
+	}
+
+	return (0);
+}
+
+##
+# check if given column contains this number
+#
+sub check_col
+{
+	my $puzzle 	= shift;
+	my $colkey 	= shift;
+	my $num 	= shift;
+
+
+	# loop rows, check column
+
+	foreach my $rowkey (keys $puzzle)
+	{
+		my $row = $puzzle->{$rowkey};
+
+		if (($puzzle->{$rowkey}{$colkey}) && ($puzzle->{$rowkey}{$colkey} == $num))
+		{
+			return (1);
+		}
+	}
+
+	return (0);
+}
+
+
+##
+# check if given 3x3 block contains this number
+#
+sub check_block
+{
+	my $puzzle 	= shift;
+	my $rowkey 	= shift;
+	my $colkey 	= shift;
+	my $num 	  = shift;
+
+
+	# x starting point
+
+	my $x_start;
+
+	if 		($rowkey % 3 == 0)
+	{
+		$x_start = $rowkey;		
+	}
+	elsif 	($rowkey % 3 == 1)
+	{
+		$x_start = $rowkey - 1;
+	}
+	elsif 	($rowkey % 3 == 2)
+	{
+		$x_start = $rowkey - 2;
+	}
+
+
+	# y starting point
+
+	my $y_start;
+
+	if 		($colkey % 3 == 0)
+	{
+		$y_start = $colkey;
+	}
+	elsif 	($colkey % 3 == 1)
+	{
+		$y_start = $colkey - 1;
+	}
+	elsif 	($colkey % 3 == 2)
+	{
+		$y_start = $colkey - 2;
+	}
+
+
+	# iterate the square
+
+	for (my $i = 0; $i < 3; $i++)
+	{
+		for (my $j = 0; $j < 3; $j++)
+		{
+			if (($puzzle->{$x_start + $i}{$y_start + $j}) && ($puzzle->{$x_start + $i}{$y_start + $j} == $num))
+			{
+				return (1);
+			}
+		}
+	}
+
+	return (0);
+}
+
+
+&setup();
+
+1;
