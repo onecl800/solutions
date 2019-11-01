@@ -278,40 +278,10 @@ sub check_block
 	my $num 	  = shift;
 
 
-	# x starting point
+	# x and y starting point
 
-	my $x_start;
-
-	if 		($rowkey % 3 == 0)
-	{
-		$x_start = $rowkey;		
-	}
-	elsif 	($rowkey % 3 == 1)
-	{
-		$x_start = $rowkey - 1;
-	}
-	elsif 	($rowkey % 3 == 2)
-	{
-		$x_start = $rowkey - 2;
-	}
-
-
-	# y starting point
-
-	my $y_start;
-
-	if 		($colkey % 3 == 0)
-	{
-		$y_start = $colkey;
-	}
-	elsif 	($colkey % 3 == 1)
-	{
-		$y_start = $colkey - 1;
-	}
-	elsif 	($colkey % 3 == 2)
-	{
-		$y_start = $colkey - 2;
-	}
+	my $x_start = ($rowkey - ($rowkey % 3));
+	my $y_start = ($colkey - ($colkey % 3));
 
 
 	# iterate the square
